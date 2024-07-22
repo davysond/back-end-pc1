@@ -12,6 +12,7 @@ import com.stripe.exception.StripeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -38,8 +39,25 @@ public class TicketServiceImpl implements TicketService{
         this.userRepository = userRepository;
     }
 
-    public List<TicketModel> listTypeTickets(){
-        return ticketRepository.findAll();
+    public List<TicketModel> listTickets(TypeTicket typeTicket, StatusTicket statusTicket,
+                                         LocalDateTime purchaseDate, Double price) {
+        if (typeTicket != null && statusTicket != null && purchaseDate != null && price != null) {
+            return ticketRepository.findByTypeTicketAndStatusTicketAndPurchaseDateAndPrice(
+                    typeTicket, statusTicket, purchaseDate, price
+            );
+        } else if (typeTicket != null && statusTicket != null) {
+            return ticketRepository.findByTypeTicketAndStatusTicket(typeTicket, statusTicket);
+        } else if (purchaseDate != null) {
+            return ticketRepository.findByPurchaseDate(purchaseDate);
+        } else if (price != null) {
+            return ticketRepository.findByPrice(price);
+        } else if (typeTicket != null) {
+            return ticketRepository.findByTypeTicket(typeTicket);
+        } else if (statusTicket != null) {
+            return ticketRepository.findByStatusTicket(statusTicket);
+        } else {
+            return ticketRepository.findAll();
+        }
     }
 
     public TicketModel buyTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException {

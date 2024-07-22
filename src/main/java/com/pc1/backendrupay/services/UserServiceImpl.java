@@ -3,6 +3,7 @@ package com.pc1.backendrupay.services;
 import com.pc1.backendrupay.domain.TicketModel;
 import com.pc1.backendrupay.domain.UserDTO;
 import com.pc1.backendrupay.domain.UserModel;
+import com.pc1.backendrupay.enums.TypeUser;
 import com.pc1.backendrupay.repositories.UserRepository;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
 
@@ -46,10 +47,17 @@ public class UserServiceImpl  implements UserService{
     }
 
     @Override
-    public List<UserModel> listUsers() {
-        return userRepository.findAll();
+    public List<UserModel> listUsers(TypeUser typeUser, String registration) {
+        if (typeUser != null && registration != null) {
+            return userRepository.findByTypeUserAndRegistration(typeUser, registration);
+        } else if (typeUser != null) {
+            return userRepository.findByTypeUser(typeUser);
+        } else if (registration != null) {
+            return userRepository.findByRegistration(registration);
+        } else {
+            return userRepository.findAll();
+        }
     }
-
     /**
      * Retrieves a user by their ID.
      * @param id the ID of the user to retrieve

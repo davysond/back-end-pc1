@@ -2,14 +2,17 @@ package com.pc1.backendrupay.controllers;
 
 import com.pc1.backendrupay.domain.TicketModel;
 import com.pc1.backendrupay.enums.TypeTicket;
+import com.pc1.backendrupay.enums.statusTicket.StatusTicket;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
 import com.pc1.backendrupay.services.TicketService;
 import com.stripe.exception.StripeException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,9 +42,11 @@ public class TicketController {
         }
     }
 
-    @GetMapping
-    public List<TicketModel> listTickets() {
-        return ticketService.listTypeTickets();
+    public List<TicketModel> listTickets(@RequestParam(required = false) TypeTicket typeTicket,
+                                         @RequestParam(required = false) StatusTicket statusTicket,
+                                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime purchaseDate,
+                                         @RequestParam(required = false) Double price) {
+        return ticketService.listTickets(typeTicket, statusTicket, purchaseDate, price);
     }
 
     @GetMapping("/listTicketsByUserId/{id}")

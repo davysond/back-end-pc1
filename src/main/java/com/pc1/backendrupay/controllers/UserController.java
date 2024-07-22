@@ -2,6 +2,7 @@ package com.pc1.backendrupay.controllers;
 
 import com.pc1.backendrupay.domain.UserDTO;
 import com.pc1.backendrupay.domain.UserModel;
+import com.pc1.backendrupay.enums.TypeUser;
 import com.pc1.backendrupay.services.UserService;
 import com.pc1.backendrupay.services.UserServiceImpl;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
@@ -35,8 +36,9 @@ public class UserController {
 
 
     @GetMapping("/list")
-    public List<UserModel> listUsers(){
-        return userService.listUsers();
+    public List<UserModel> listUsers(@RequestParam(required = false) TypeUser typeUser,
+                                     @RequestParam(required = false) String registration) {
+        return userService.listUsers(typeUser, registration);
     }
 
     /**
