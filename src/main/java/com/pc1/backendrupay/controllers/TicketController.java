@@ -41,7 +41,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar o pagamento");
         }
     }
-
+    @GetMapping("/list")
     public List<TicketModel> listTickets(@RequestParam(required = false) TypeTicket typeTicket,
                                          @RequestParam(required = false) StatusTicket statusTicket,
                                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime purchaseDate,
