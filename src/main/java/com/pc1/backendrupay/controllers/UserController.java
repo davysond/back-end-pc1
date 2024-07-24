@@ -8,10 +8,12 @@ import com.pc1.backendrupay.services.UserServiceImpl;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,8 +39,9 @@ public class UserController {
 
     @GetMapping("/list")
     public List<UserModel> listUsers(@RequestParam(required = false) TypeUser typeUser,
-                                     @RequestParam(required = false) String registration) {
-        return userService.listUsers(typeUser, registration);
+                                     @RequestParam(required = false) String registration,
+                                     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime creationDate) {
+        return userService.listUsers(typeUser, registration, creationDate);
     }
 
     /**

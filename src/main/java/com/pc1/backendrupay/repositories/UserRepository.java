@@ -5,6 +5,7 @@ import com.pc1.backendrupay.enums.TypeUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository<UserModel, UUID> {
     List<UserModel> findByTypeUser(TypeUser typeUser);
     List<UserModel> findByRegistration(String registration);
     List<UserModel> findByTypeUserAndRegistration(TypeUser typeUser, String registration);
+    List<UserModel> findByCreationDate(LocalDateTime creationDate);
+    List<UserModel> findByTypeUserAndRegistrationAndCreationDate(TypeUser typeUser, String registration, LocalDateTime creationDate);
 }

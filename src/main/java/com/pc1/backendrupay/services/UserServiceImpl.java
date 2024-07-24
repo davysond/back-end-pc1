@@ -10,6 +10,7 @@ import com.pc1.backendrupay.exceptions.UserNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,13 +48,17 @@ public class UserServiceImpl  implements UserService{
     }
 
     @Override
-    public List<UserModel> listUsers(TypeUser typeUser, String registration) {
-        if (typeUser != null && registration != null) {
+    public List<UserModel> listUsers(TypeUser typeUser, String registration, LocalDateTime creationDate) {
+        if (typeUser != null && registration != null && creationDate != null) {
+            return userRepository.findByTypeUserAndRegistrationAndCreationDate(typeUser, registration, creationDate);
+        } else if (typeUser != null && registration != null) {
             return userRepository.findByTypeUserAndRegistration(typeUser, registration);
         } else if (typeUser != null) {
             return userRepository.findByTypeUser(typeUser);
         } else if (registration != null) {
             return userRepository.findByRegistration(registration);
+        } else if (creationDate != null) {
+            return userRepository.findByCreationDate(creationDate);
         } else {
             return userRepository.findAll();
         }
