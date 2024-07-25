@@ -91,9 +91,18 @@ public class TicketServiceImpl implements TicketService{
         return newTicket;
     }
 
-    public List<TicketModel> listTicketByUserId(UUID id) throws UserNotFoundException {
+    public List<TicketModel> listTicketByUserId(UUID id, StatusTicket statusTicket) throws UserNotFoundException {
         UserModel user = userService.getUserId(id);
         List<TicketModel> tickets = user.getTickets();
+        if (statusTicket != null) {
+            List<TicketModel> filteredTickets = new ArrayList<>();
+            for (TicketModel ticket : tickets) {
+                if (ticket.getStatusTicket() == statusTicket) {
+                    filteredTickets.add(ticket);
+                }
+            }
+            return filteredTickets;
+        }
         return tickets;
     }
 

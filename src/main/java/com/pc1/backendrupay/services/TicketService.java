@@ -15,7 +15,7 @@ public interface TicketService {
     public TicketModel buyTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException;
     public List<TicketModel> listTickets(TypeTicket typeTicket, StatusTicket statusTicket,
                                          LocalDateTime purchaseDate, Double price);
-    public List<TicketModel> listTicketByUserId(UUID id) throws UserNotFoundException;
+    public List<TicketModel> listTicketByUserId(UUID id, StatusTicket statusTicket) throws UserNotFoundException;
     public Optional<TicketModel> consultTicketById(UUID id);
     public TicketModel createTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException;
     public List<TicketModel> listTicketsActives(UUID id) throws UserNotFoundException;

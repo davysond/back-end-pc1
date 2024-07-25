@@ -50,8 +50,8 @@ public class TicketController {
     }
 
     @GetMapping("/listTicketsByUserId/{id}")
-    public List<TicketModel> listTicketsByUserId(@PathVariable("id") UUID id) throws UserNotFoundException {
-        return ticketService.listTicketByUserId(id);
+    public List<TicketModel> listTicketsByUserId(@PathVariable("id") UUID id, @RequestParam(required = false) StatusTicket statusTicket) throws UserNotFoundException {
+        return ticketService.listTicketByUserId(id, statusTicket);
     }
 
     @GetMapping("/consultTicketById/{id}")
