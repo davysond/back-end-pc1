@@ -30,6 +30,7 @@ import com.pc1.backendrupay.domain.UserModel;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -61,6 +62,7 @@ public class AuthenticationService {
                 .email(request.getEmail())
                 .typeUser(typeuser)
                 .registration(request.getRegistration())
+                .creationDate(LocalDateTime.now())
                 .build();
 
         var savedUser = repository.save(user);

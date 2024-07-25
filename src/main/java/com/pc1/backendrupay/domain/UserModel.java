@@ -39,7 +39,8 @@ public class UserModel implements UserDetails, Serializable {
 
     @Enumerated(EnumType.STRING)
     private TypeUser typeUser;
-    private String registration; // Optional attribute
+    private String registration;// Optional attribute
+
     private LocalDateTime creationDate;
     @OneToMany(cascade = CascadeType.PERSIST)
     private List<TicketModel> tickets;
@@ -57,7 +58,7 @@ public class UserModel implements UserDetails, Serializable {
         this.password = userDTO.password();
         this.typeUser = userDTO.typeUser();
         this.registration = userDTO.registration();
-        this.creationDate = LocalDateTime.now();
+        this.creationDate = userDTO.creationDate();
         this.tickets = new ArrayList<TicketModel>();
     }
 
