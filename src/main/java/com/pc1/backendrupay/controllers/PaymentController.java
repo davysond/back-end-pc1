@@ -97,6 +97,7 @@ public class PaymentController {
             @RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sigHeader) {
 
+        Stripe.apiKey = stripeSecretKey;
         Event event;
 
         try {
