@@ -1,5 +1,6 @@
 package com.pc1.backendrupay.controllers;
 
+import com.google.gson.JsonSyntaxException;
 import com.pc1.backendrupay.domain.RequestPaymentDTO;
 import com.pc1.backendrupay.domain.TicketModel;
 import com.pc1.backendrupay.domain.UserModel;
@@ -8,9 +9,12 @@ import com.pc1.backendrupay.exceptions.UserNotFoundException;
 import com.pc1.backendrupay.services.TicketService;
 import com.pc1.backendrupay.services.UserService;
 import com.stripe.Stripe;
+import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.PaymentIntent;
+import com.stripe.model.*;
 import com.stripe.model.checkout.Session;
+import com.stripe.net.ApiResource;
+import com.stripe.net.Webhook;
 import com.stripe.param.checkout.SessionCreateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +30,11 @@ public class PaymentController {
 
     @Value("${stripe.secretKey}")
     private String stripeSecretKey;
+
+
+    @Value("${stripe.endpoint.secret}")
+    private String endpointSecret;
+
     @Autowired
     private TicketService ticketService;
 
@@ -81,6 +90,72 @@ public class PaymentController {
         RequestPaymentDTO rpDTO = new RequestPaymentDTO(session.getUrl(), userId);
 
         return rpDTO;
+    }
+
+    @PostMapping("/webhook")
+    public ResponseEntity<String> handleStripeWebhook(
+            @RequestBody String payload,
+            @RequestHeader("Stripe-Signature") String sigHeader) {
+
+        Event event;
+
+        try {
+            event = ApiResource.GSON.fromJson(payload, Event.class);
+        } catch (JsonSyntaxException e) {
+            // Payload inválido
+            System.out.println("⚠️  Webhook error while parsing basic request.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
+        }
+
+        if (endpointSecret != null && sigHeader != null) {
+            // Verificar o evento se um endpoint secret estiver definido
+            try {
+                event = Webhook.constructEvent(payload, sigHeader, endpointSecret);
+            } catch (SignatureVerificationException e) {
+                // Assinatura inválida
+                System.out.println("⚠️  Webhook error while validating signature.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
+            }
+        }
+
+        // Desserializar o objeto aninhado dentro do evento
+        EventDataObjectDeserializer dataObjectDeserializer = event.getDataObjectDeserializer();
+        StripeObject stripeObject = null;
+        if (dataObjectDeserializer.getObject().isPresent()) {
+            stripeObject = dataObjectDeserializer.getObject().get();
+        } else {
+            // Falha na desserialização
+            System.out.println("⚠️  Deserialization failed.");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
+        }
+
+        // Tratar o evento
+        switch (event.getType()) {
+            case "payment_intent.succeeded":
+                PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
+                System.out.println("Payment for " + paymentIntent.getAmount() + " succeeded.");
+                // Chamar método para tratar o sucesso do pagamento
+                handlePaymentIntentSucceeded(paymentIntent);
+                break;
+            case "payment_method.attached":
+                PaymentMethod paymentMethod = (PaymentMethod) stripeObject;
+                // Chamar método para tratar o anexo bem-sucedido de um método de pagamento
+                handlePaymentMethodAttached(paymentMethod);
+                break;
+            default:
+                System.out.println("Unhandled event type: " + event.getType());
+                break;
+        }
+
+        return ResponseEntity.ok("Event processed");
+    }
+
+    private void handlePaymentIntentSucceeded(PaymentIntent paymentIntent) {
+        System.out.println(paymentIntent);
+    }
+
+    private void handlePaymentMethodAttached(PaymentMethod paymentMethod) {
+        // Lógica para tratar o anexo do PaymentMethod
     }
 
 }
