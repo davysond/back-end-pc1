@@ -85,8 +85,9 @@ public class PaymentController {
                         .build();
 
         Session session = Session.create(params);
-        PaymentIntent paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
-        String paymentId = paymentIntent.getId();
+        //pegar id do PaymentIntent
+
+        String paymentId = session.getPaymentIntent();
 
         UserModel user = userService.getUserId(userId);
 
