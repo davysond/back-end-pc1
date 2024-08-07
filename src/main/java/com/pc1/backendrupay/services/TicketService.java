@@ -1,6 +1,7 @@
 package com.pc1.backendrupay.services;
 
 import com.pc1.backendrupay.domain.TicketModel;
+import com.pc1.backendrupay.domain.TicketOptions;
 import com.pc1.backendrupay.enums.TypeTicket;
 import com.pc1.backendrupay.enums.statusTicket.StatusTicket;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
@@ -19,6 +20,7 @@ public interface TicketService {
     public Optional<TicketModel> consultTicketById(UUID id);
     public TicketModel createTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException;
     public List<TicketModel> listTicketsActives(UUID id) throws UserNotFoundException;
+    public TicketOptions checkUserOptions(UUID id) throws UserNotFoundException;
 
     void updateTicketStatusToActive(UUID ticketId);
 

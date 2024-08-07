@@ -1,6 +1,8 @@
 package com.pc1.backendrupay.services;
 
+import com.google.gson.Gson;
 import com.pc1.backendrupay.domain.TicketModel;
+import com.pc1.backendrupay.domain.TicketOptions;
 import com.pc1.backendrupay.domain.UserModel;
 import com.pc1.backendrupay.enums.TypeTicket;
 import com.pc1.backendrupay.enums.TypeUser;
@@ -12,6 +14,7 @@ import com.stripe.exception.StripeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,22 +65,50 @@ public class TicketServiceImpl implements TicketService{
 
     public TicketModel buyTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException {
         UserModel user = userService.getUserId(id);
+        LocalDate today = LocalDate.now();
         if (user.getTickets() == null) {
             user.setTickets(new ArrayList<TicketModel>());
         }
 
-        if (user.getTypeUser() == TypeUser.STUDENT) {
+        if(user.getTypeUser() == TypeUser.STUDENT) {
+            if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_DINNER_TICKET) {
+                if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot buy more than one discounted lunch ticket per day");
+                }
+                if(typeTicket == TypeTicket.STUDENT_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot buy more than one discounted dinner ticket per day");
+                }
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+                throw new RuntimeException("Student cannot buy this type of ticket");
+            }
+
             LUNCH_PRICE = 5.72;
             DINNER_PRICE = 5.45;
-        } else if (user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
+        } else if(user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
+            if (typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET) {
+                if(typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot get more than one free lunch ticket per day");
+                }
+                if(typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot get more than one free dinner ticket per day");
+                }
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+                throw new RuntimeException("Scholarship student cannot buy this type of ticket");
+            }
+
             LUNCH_PRICE = 0.0;
             DINNER_PRICE = 0.0;
         } else {
-            LUNCH_PRICE = LUNCH_PRICE;
-            DINNER_PRICE = DINNER_PRICE;
+            LUNCH_PRICE = 11.45;
+            DINNER_PRICE = 11.90;
         }
 
-        Double price = typeTicket == TypeTicket.LUNCH ? LUNCH_PRICE : DINNER_PRICE;
+        Double price;
+        if(typeTicket == TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_LUNCH_TICKET) {
+            price = LUNCH_PRICE;
+        } else {
+            price = DINNER_PRICE;
+        }
 
         TicketModel ticket = new TicketModel(price, typeTicket, StatusTicket.ACTIVE);
         ticketRepository.save(ticket);
@@ -148,5 +179,30 @@ public class TicketServiceImpl implements TicketService{
 
     }
 
+    public TicketOptions checkUserOptions(UUID id) throws UserNotFoundException {
+        UserModel user = userService.getUserId(id);
+        LocalDate today = LocalDate.now();
+        TicketOptions ticketOptions;
+        int lunchTickets = 0;
+        int dinnerTickets = 0;
+
+        if(user.getTypeUser() == TypeUser.STUDENT) {
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
+                lunchTickets++;
+            }
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
+                dinnerTickets++;
+            }
+        } else if (user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
+                lunchTickets++;
+            } if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
+                dinnerTickets++;
+            }
+        }
+
+        ticketOptions = new TicketOptions(lunchTickets, dinnerTickets);
+        return ticketOptions;
+    }
 
 }
