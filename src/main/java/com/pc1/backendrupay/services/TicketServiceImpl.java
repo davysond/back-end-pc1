@@ -1,6 +1,8 @@
 package com.pc1.backendrupay.services;
 
+import com.google.gson.Gson;
 import com.pc1.backendrupay.domain.TicketModel;
+import com.pc1.backendrupay.domain.TicketOptions;
 import com.pc1.backendrupay.domain.UserModel;
 import com.pc1.backendrupay.enums.TypeTicket;
 import com.pc1.backendrupay.enums.TypeUser;
@@ -68,6 +70,8 @@ public class TicketServiceImpl implements TicketService{
             user.setTickets(new ArrayList<TicketModel>());
         }
 
+        checkIfUserCanBuyTicket(id);
+
         if(user.getTypeUser() == TypeUser.STUDENT && (typeTicket == TypeTicket.STUDENT_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_DINNER_TICKET)) {
             if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
                 throw new RuntimeException("User cannot buy more than one discounted lunch ticket per day");
@@ -92,6 +96,7 @@ public class TicketServiceImpl implements TicketService{
             LUNCH_PRICE = 11.45;
             DINNER_PRICE = 11.90;
         }
+
         Double price;
         if(typeTicket == TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_LUNCH_TICKET) {
             price = LUNCH_PRICE;
@@ -100,7 +105,6 @@ public class TicketServiceImpl implements TicketService{
         }
 
         TicketModel ticket = new TicketModel(price, typeTicket, StatusTicket.ACTIVE);
-        System.out.println(ticket.getTypeTicket());
         ticketRepository.save(ticket);
         user.getTickets().add(ticket);
         userService.saveUser(user);
@@ -169,5 +173,34 @@ public class TicketServiceImpl implements TicketService{
 
     }
 
-    
+    public String checkIfUserCanBuyTicket(UUID id) throws UserNotFoundException {
+        UserModel user = userService.getUserId(id);
+        LocalDate today = LocalDate.now();
+        TicketOptions lunchOptions;
+        TicketOptions dinnerOptions;
+        int lunchTickets = 0;
+        int dinnerTickets = 0;
+
+        if(user.getTypeUser() == TypeUser.STUDENT) {
+            if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                lunchTickets++;
+            } if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                dinnerTickets++;
+            }
+        } else if (user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
+            if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                lunchTickets++;
+            } if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                dinnerTickets++;
+            }
+        }
+
+        lunchOptions = new TicketOptions("LUNCH", lunchTickets);
+        dinnerOptions = new TicketOptions("DINNER", dinnerTickets);
+        String ticketOptions = new Gson().toJson(lunchOptions) + new Gson().toJson(dinnerOptions);
+
+        System.out.println(ticketOptions);
+        return ticketOptions;
+    }
+
 }
