@@ -78,8 +78,14 @@ public class TicketServiceImpl implements TicketService{
                 if(typeTicket == TypeTicket.STUDENT_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
                     throw new RuntimeException("User cannot buy more than one discounted dinner ticket per day");
                 }
-            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+
+                LUNCH_PRICE = 5.72;
+                DINNER_PRICE = 5.45;
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET && typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
                 throw new RuntimeException("Student cannot buy this type of ticket");
+            } else {
+                LUNCH_PRICE = 11.45;
+                DINNER_PRICE = 11.90;
             }
 
             LUNCH_PRICE = 5.72;
@@ -92,12 +98,15 @@ public class TicketServiceImpl implements TicketService{
                 if(typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
                     throw new RuntimeException("User cannot get more than one free dinner ticket per day");
                 }
-            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
-                throw new RuntimeException("Scholarship student cannot buy this type of ticket");
-            }
 
-            LUNCH_PRICE = 0.0;
-            DINNER_PRICE = 0.0;
+                LUNCH_PRICE = 0.0;
+                DINNER_PRICE = 0.0;
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET && typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+                throw new RuntimeException("Scholarship student cannot buy this type of ticket");
+            } else {
+                LUNCH_PRICE = 11.45;
+                DINNER_PRICE = 11.90;
+            }
         } else {
             LUNCH_PRICE = 11.45;
             DINNER_PRICE = 11.90;
