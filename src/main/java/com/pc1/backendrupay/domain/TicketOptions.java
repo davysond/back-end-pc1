@@ -1,19 +1,19 @@
 package com.pc1.backendrupay.domain;
 
 public class TicketOptions {
-    private String meal;
-    private int options;
+    private int LUNCH;
+    private int DINNER;
 
-    public TicketOptions(String meal, int options) {
-        this.meal = meal;
-        this.options = options;
+    public TicketOptions(int LUNCH, int DINNER) {
+        this.LUNCH = LUNCH;
+        this.DINNER = DINNER;
     }
 
-    public String getMeal() {
-        return meal;
+    public int getMeal() {
+        return LUNCH;
     }
 
     public int getOptions() {
-        return options;
+        return DINNER;
     }
 }

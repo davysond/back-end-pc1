@@ -72,22 +72,30 @@ public class TicketServiceImpl implements TicketService{
 
         checkIfUserCanBuyTicket(id);
 
-        if(user.getTypeUser() == TypeUser.STUDENT && (typeTicket == TypeTicket.STUDENT_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_DINNER_TICKET)) {
-            if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
-                throw new RuntimeException("User cannot buy more than one discounted lunch ticket per day");
-            }
-            if(typeTicket == TypeTicket.STUDENT_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
-                throw new RuntimeException("User cannot buy more than one discounted dinner ticket per day");
+        if(user.getTypeUser() == TypeUser.STUDENT) {
+            if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_DINNER_TICKET) {
+                if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot buy more than one discounted lunch ticket per day");
+                }
+                if(typeTicket == TypeTicket.STUDENT_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot buy more than one discounted dinner ticket per day");
+                }
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+                throw new RuntimeException("Student cannot buy this type of ticket");
             }
 
             LUNCH_PRICE = 5.72;
             DINNER_PRICE = 5.45;
-        } else if (user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT && (typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET)) {
-            if(typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
-                throw new RuntimeException("User cannot get more than one free lunch ticket per day");
-            }
-            if(typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
-                throw new RuntimeException("User cannot get more than one free dinner ticket per day");
+        } else if(user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
+            if (typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET) {
+                if(typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot get more than one free lunch ticket per day");
+                }
+                if(typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+                    throw new RuntimeException("User cannot get more than one free dinner ticket per day");
+                }
+            } else if (typeTicket != TypeTicket.EXTERNAL_LUNCH_TICKET || typeTicket != TypeTicket.EXTERNAL_DINNER_TICKET) {
+                throw new RuntimeException("Scholarship student cannot buy this type of ticket");
             }
 
             LUNCH_PRICE = 0.0;
@@ -176,31 +184,30 @@ public class TicketServiceImpl implements TicketService{
     public String checkIfUserCanBuyTicket(UUID id) throws UserNotFoundException {
         UserModel user = userService.getUserId(id);
         LocalDate today = LocalDate.now();
-        TicketOptions lunchOptions;
-        TicketOptions dinnerOptions;
+        TicketOptions ticketOptions;
         int lunchTickets = 0;
         int dinnerTickets = 0;
 
         if(user.getTypeUser() == TypeUser.STUDENT) {
-            if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
                 lunchTickets++;
-            } if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+            }
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
                 dinnerTickets++;
             }
         } else if (user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
-            if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+            if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
                 lunchTickets++;
-            } if(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
+            } if(!(user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_DINNER_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today)))) {
                 dinnerTickets++;
             }
         }
 
-        lunchOptions = new TicketOptions("LUNCH", lunchTickets);
-        dinnerOptions = new TicketOptions("DINNER", dinnerTickets);
-        String ticketOptions = new Gson().toJson(lunchOptions) + new Gson().toJson(dinnerOptions);
+        ticketOptions = new TicketOptions(lunchTickets, dinnerTickets);
+        String stringOptions = new Gson().toJson(ticketOptions);
 
-        System.out.println(ticketOptions);
-        return ticketOptions;
+        System.out.println(stringOptions);
+        return stringOptions;
     }
 
 }
