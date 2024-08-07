@@ -26,4 +26,8 @@ public interface TicketService {
     void updateTicketStatusToInactive(UUID ticketId);
 
     void setTicketIntentSucceeded(PaymentIntent paymentIntent);
+
+    TicketModel getTicketById(String ticketId);
+
+    void setPaymentId(String ticketId, String paymentIntent);
 }

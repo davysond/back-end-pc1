@@ -161,5 +161,22 @@ public class TicketServiceImpl implements TicketService{
         ticketRepository.save(newTicket);
     }
 
+    @Override
+    public TicketModel getTicketById(String ticketId) {
+        return ticketRepository.findById(UUID.fromString(ticketId)).get();
+    }
+
+    @Override
+    public void setPaymentId(String ticketId, String paymentIntent) {
+        Optional<TicketModel> ticket = ticketRepository.findById(UUID.fromString(ticketId));
+        if (ticket.isEmpty()) {
+            throw new RuntimeException("Ticket not found");
+        }
+        TicketModel newTicket = ticket.get();
+        newTicket.setPaymentID(paymentIntent);
+        ticketRepository.save(newTicket);
+
+    }
+
 
 }

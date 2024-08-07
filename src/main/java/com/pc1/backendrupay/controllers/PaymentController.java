@@ -11,7 +11,11 @@ import com.pc1.backendrupay.services.UserService;
 import com.stripe.Stripe;
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
-import com.stripe.model.*;
+import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.PaymentIntent;
+import com.stripe.model.PaymentMethod;
+import com.stripe.model.StripeObject;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.ApiResource;
 import com.stripe.net.Webhook;
@@ -56,8 +60,6 @@ public class PaymentController {
         String scholarship_lunch_ticket = "price_1P8q9oBo6B2t81e5q31Eat9u";
         String scholarship_dinner_ticket = "price_1P8q9oBo6B2t81e5q31Eat9u";
 
-
-
         String priceId;
 
         switch(typeTicket){
@@ -85,13 +87,14 @@ public class PaymentController {
                         .build();
 
         Session session = Session.create(params);
-        //pegar id do PaymentIntent
 
-        String paymentId = session.getPaymentIntent();
+        // Obter o ID do PaymentIntent
+        String paymentIntentId = session.getPaymentIntent();
 
         UserModel user = userService.getUserId(userId);
 
-        TicketModel newTicket = ticketService.createTicket(userId, typeTicket, paymentId);
+        // Criar o ticket com o paymentIntentId
+        TicketModel newTicket = ticketService.createTicket(userId, typeTicket, paymentIntentId);
 
         RequestPaymentDTO rpDTO = new RequestPaymentDTO(session.getUrl(), userId);
 
@@ -138,6 +141,10 @@ public class PaymentController {
 
         // Tratar o evento
         switch (event.getType()) {
+            case "checkout.session.completed":
+                Session session = (Session) stripeObject;
+                handleCheckoutSessionCompleted(session);
+                break;
             case "payment_intent.succeeded":
                 PaymentIntent paymentIntent = (PaymentIntent) stripeObject;
                 System.out.println("Payment for " + paymentIntent.getAmount() + " succeeded.");
@@ -157,11 +164,26 @@ public class PaymentController {
         return ResponseEntity.ok("Event processed");
     }
 
+    private void handleCheckoutSessionCompleted(Session session) {
+        // Lógica para tratar a sessão de checkout concluída
+        System.out.println("Checkout session completed with ID: " + session.getId());
+        System.out.println("Client Reference ID: " + session.getClientReferenceId());
 
+        // Identificar o usuário pelo client_reference_id
+        String ticketId = session.getClientReferenceId();
+        ticketService.setPaymentId(ticketId, session.getPaymentIntent());
+
+
+
+        // Você pode atualizar o estado do ticket ou fazer outras ações necessárias
+        // baseado no user e nos itens comprados
+    }
 
     private void handlePaymentIntentSucceeded(PaymentIntent paymentIntent) {
+
+        System.out.println(paymentIntent);
         // Lógica para tratar o sucesso do pagamento
-        this.ticketService.setTicketIntentSucceeded(paymentIntent);
+        ticketService.setTicketIntentSucceeded(paymentIntent);
     }
 
     private void handlePaymentMethodAttached(PaymentMethod paymentMethod) {
