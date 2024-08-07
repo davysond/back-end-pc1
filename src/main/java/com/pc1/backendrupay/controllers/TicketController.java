@@ -28,19 +28,19 @@ public class TicketController {
         this.ticketService = ticketService;
     }
 
-    @PostMapping("/buy/{id}/{typeTicket}")
-    public ResponseEntity<?> buyTicket(@PathVariable UUID id, @PathVariable TypeTicket typeTicket) throws UserNotFoundException {
-        try {
-            TicketModel ticket = ticketService.buyTicket(id, typeTicket);
-            return ResponseEntity.ok().body(ticket);
-        } catch (UserNotFoundException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
-        } catch (StripeException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar o pagamento");
-        }
-    }
+//    @PostMapping("/buy/{id}/{typeTicket}")
+//    public ResponseEntity<?> buyTicket(@PathVariable UUID id, @PathVariable TypeTicket typeTicket) throws UserNotFoundException {
+//        try {
+//            TicketModel ticket = ticketService.buyTicket(id, typeTicket, );
+//            return ResponseEntity.ok().body(ticket);
+//        } catch (UserNotFoundException e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
+//        } catch (StripeException e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao processar o pagamento");
+//        }
+//    }
     @GetMapping("/list")
     public List<TicketModel> listTickets(@RequestParam(required = false) TypeTicket typeTicket,
                                          @RequestParam(required = false) StatusTicket statusTicket,
