@@ -87,9 +87,6 @@ public class TicketServiceImpl implements TicketService{
                 LUNCH_PRICE = 11.45;
                 DINNER_PRICE = 11.90;
             }
-
-            LUNCH_PRICE = 5.72;
-            DINNER_PRICE = 5.45;
         } else if(user.getTypeUser() == TypeUser.SCHOLARSHIP_STUDENT) {
             if (typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET || typeTicket == TypeTicket.SCHOLARSHIP_DINNER_TICKET) {
                 if(typeTicket == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.SCHOLARSHIP_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
