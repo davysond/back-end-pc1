@@ -70,8 +70,6 @@ public class TicketServiceImpl implements TicketService{
             user.setTickets(new ArrayList<TicketModel>());
         }
 
-        checkIfUserCanBuyTicket(id);
-
         if(user.getTypeUser() == TypeUser.STUDENT) {
             if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET || typeTicket == TypeTicket.STUDENT_DINNER_TICKET) {
                 if(typeTicket == TypeTicket.STUDENT_LUNCH_TICKET && user.getTickets().stream().anyMatch(ticket -> ticket.getTypeTicket() == TypeTicket.STUDENT_LUNCH_TICKET && ticket.getPurchaseDate().toLocalDate().equals(today))) {
@@ -181,7 +179,7 @@ public class TicketServiceImpl implements TicketService{
 
     }
 
-    public String checkIfUserCanBuyTicket(UUID id) throws UserNotFoundException {
+    public TicketOptions checkUserOptions(UUID id) throws UserNotFoundException {
         UserModel user = userService.getUserId(id);
         LocalDate today = LocalDate.now();
         TicketOptions ticketOptions;
@@ -204,10 +202,7 @@ public class TicketServiceImpl implements TicketService{
         }
 
         ticketOptions = new TicketOptions(lunchTickets, dinnerTickets);
-        String stringOptions = new Gson().toJson(ticketOptions);
-
-        System.out.println(stringOptions);
-        return stringOptions;
+        return ticketOptions;
     }
 
 }

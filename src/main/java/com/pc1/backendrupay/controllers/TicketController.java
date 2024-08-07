@@ -1,21 +1,28 @@
 package com.pc1.backendrupay.controllers;
 
 import com.pc1.backendrupay.domain.TicketModel;
+import com.pc1.backendrupay.domain.TicketOptions;
 import com.pc1.backendrupay.enums.TypeTicket;
 import com.pc1.backendrupay.enums.statusTicket.StatusTicket;
 import com.pc1.backendrupay.exceptions.UserNotFoundException;
 import com.pc1.backendrupay.services.TicketService;
 import com.stripe.exception.StripeException;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.PrintWriter;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 
 @RestController
 @RequestMapping("/api/ticket")
@@ -83,6 +90,16 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao atualizar o status do ticket");
         }
     }
+
+    @GetMapping("/checkUserOptions/{id}")
+    public ResponseEntity<?> checkUserOptions(@PathVariable("id") UUID id) {
+        try {
+            return ResponseEntity.ok().body(ticketService.checkUserOptions(id));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao procurar opções de tickets para o usuário");
+        }
+    }
+    
 
 
 }
