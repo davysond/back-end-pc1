@@ -152,7 +152,7 @@ public class TicketServiceImpl implements TicketService{
     @Override
     public void setTicketIntentSucceeded(PaymentIntent paymentIntent) {
         String paymentId = paymentIntent.getId();
-        Optional<TicketModel> ticket = ticketRepository.findByPaymentId(paymentId);
+        Optional<TicketModel> ticket = ticketRepository.findByPaymentID(paymentId);
         if (ticket.isEmpty()) {
             throw new RuntimeException("Ticket not found");
         }

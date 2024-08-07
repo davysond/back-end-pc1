@@ -28,5 +28,5 @@ public interface TicketRepository extends JpaRepository<TicketModel, UUID> {
             Double price
     );
 
-    Optional<TicketModel> findByPaymentId(String paymentId);
+    Optional<TicketModel> findByPaymentID(String paymentID);
 }
