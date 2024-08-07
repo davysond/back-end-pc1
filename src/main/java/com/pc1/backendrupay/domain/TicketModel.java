@@ -25,13 +25,15 @@ public class TicketModel {
     private TypeTicket typeTicket;
     private StatusTicket statusTicket;
     private LocalDateTime purchaseDate;
+    private String paymentID;
 
 
-    public TicketModel(Double price, TypeTicket typeTicket, StatusTicket statusTicket){
+    public TicketModel(Double price, TypeTicket typeTicket, StatusTicket statusTicket, String paymentID){
         this.price = price;
         this.typeTicket = typeTicket;
         this.statusTicket = statusTicket;
         this.purchaseDate = LocalDateTime.now();
+        this.paymentID = paymentID;
     }
 
 

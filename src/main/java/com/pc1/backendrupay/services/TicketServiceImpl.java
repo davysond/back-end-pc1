@@ -9,6 +9,7 @@ import com.pc1.backendrupay.exceptions.UserNotFoundException;
 import com.pc1.backendrupay.repositories.TicketRepository;
 import com.pc1.backendrupay.repositories.UserRepository;
 import com.stripe.exception.StripeException;
+import com.stripe.model.PaymentIntent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +61,7 @@ public class TicketServiceImpl implements TicketService{
         }
     }
 
-    public TicketModel buyTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException {
+    public TicketModel buyTicket(UUID id, TypeTicket typeTicket, String paymentID) throws UserNotFoundException, StripeException {
         UserModel user = userService.getUserId(id);
         if (user.getTickets() == null) {
             user.setTickets(new ArrayList<TicketModel>());
@@ -79,15 +80,15 @@ public class TicketServiceImpl implements TicketService{
 
         Double price = typeTicket == TypeTicket.LUNCH ? LUNCH_PRICE : DINNER_PRICE;
 
-        TicketModel ticket = new TicketModel(price, typeTicket, StatusTicket.ACTIVE);
+        TicketModel ticket = new TicketModel(price, typeTicket, StatusTicket.INACTIVE, paymentID);
         ticketRepository.save(ticket);
         user.getTickets().add(ticket);
         userService.saveUser(user);
         return ticket;
 
     }
-    public TicketModel createTicket(UUID id, TypeTicket typeTicket) throws UserNotFoundException, StripeException {
-        TicketModel newTicket = buyTicket(id, typeTicket);
+    public TicketModel createTicket(UUID id, TypeTicket typeTicket, String paymentID) throws UserNotFoundException, StripeException {
+        TicketModel newTicket = buyTicket(id, typeTicket, paymentID);
         return newTicket;
     }
 
@@ -146,6 +147,18 @@ public class TicketServiceImpl implements TicketService{
         newTicket.setStatusTicket(StatusTicket.INACTIVE);
         ticketRepository.save(newTicket);
 
+    }
+
+    @Override
+    public void setTicketIntentSucceeded(PaymentIntent paymentIntent) {
+        String paymentId = paymentIntent.getId();
+        Optional<TicketModel> ticket = ticketRepository.findByPaymentId(paymentId);
+        if (ticket.isEmpty()) {
+            throw new RuntimeException("Ticket not found");
+        }
+        TicketModel newTicket = ticket.get();
+        newTicket.setStatusTicket(StatusTicket.ACTIVE);
+        ticketRepository.save(newTicket);
     }
 
 

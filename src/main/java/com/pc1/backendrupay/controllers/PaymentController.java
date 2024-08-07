@@ -31,7 +31,6 @@ public class PaymentController {
     @Value("${stripe.secretKey}")
     private String stripeSecretKey;
 
-
     @Value("${stripe.endpoint.secret}")
     private String endpointSecret;
 
@@ -45,9 +44,9 @@ public class PaymentController {
         this.ticketService = ticketService;
         this.userService = userService;
     }
+
     @GetMapping("/checkout/{userId}/{typeTicket}")
     private RequestPaymentDTO hostedCheckout(@PathVariable("typeTicket") TypeTicket typeTicket, @PathVariable("userId") UUID userId) throws StripeException, UserNotFoundException {
-        //TODO falta implementar uma verificação de segurança para garantir que o usuário que está fazendo a requisição tem permissão para comprar o tipo de  ticket passado
         Stripe.apiKey = stripeSecretKey;
 
         String student_lunch_ticket = "price_1P8q7mBo6B2t81e5yglSzDMW";
@@ -57,13 +56,11 @@ public class PaymentController {
         String scholarship_lunch_ticket = "price_1P8q9oBo6B2t81e5q31Eat9u";
         String scholarship_dinner_ticket = "price_1P8q9oBo6B2t81e5q31Eat9u";
 
-        UserModel user = userService.getUserId(userId);
 
-        TicketModel newTicket = ticketService.createTicket(userId, typeTicket);
 
         String priceId;
 
-        switch(newTicket.getTypeTicket()){
+        switch(typeTicket){
             case STUDENT_LUNCH_TICKET -> priceId = student_lunch_ticket;
             case STUDENT_DINNER_TICKET -> priceId = student_dinner_ticket;
             case EXTERNAL_LUNCH_TICKET -> priceId = external_lunch_ticket;
@@ -82,11 +79,19 @@ public class PaymentController {
                                         .build()
                         )
                         .setMode(SessionCreateParams.Mode.PAYMENT)
+                        .setClientReferenceId(userId.toString())  // Adicionando client_reference_id
                         .setSuccessUrl("https://rupayufcg.vercel.app/my-tickets")
                         .setCancelUrl("https://rupayufcg.vercel.app/my-tickets")
                         .build();
 
         Session session = Session.create(params);
+        PaymentIntent paymentIntent = PaymentIntent.retrieve(session.getPaymentIntent());
+        String paymentId = paymentIntent.getId();
+
+        UserModel user = userService.getUserId(userId);
+
+        TicketModel newTicket = ticketService.createTicket(userId, typeTicket, paymentId);
+
         RequestPaymentDTO rpDTO = new RequestPaymentDTO(session.getUrl(), userId);
 
         return rpDTO;
@@ -151,13 +156,14 @@ public class PaymentController {
         return ResponseEntity.ok("Event processed");
     }
 
+
+
     private void handlePaymentIntentSucceeded(PaymentIntent paymentIntent) {
-        System.out.println(paymentIntent);
+        // Lógica para tratar o sucesso do pagamento
+        this.ticketService.setTicketIntentSucceeded(paymentIntent);
     }
 
     private void handlePaymentMethodAttached(PaymentMethod paymentMethod) {
         // Lógica para tratar o anexo do PaymentMethod
     }
-
 }
-
